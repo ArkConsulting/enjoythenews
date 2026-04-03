@@ -8,20 +8,21 @@ def read_config(file_path):
             config = json.load(file)
         
         if "name" not in config or "version" not in config:
-            raise ValueError("Config must contain 'name' and 'version'.")
+            raise ValueError(f"Config must contain 'name' and 'version'. File: {file_path}")
         
         return config
     except FileNotFoundError:
-        print(f"Error: The file {file_path} does not exist.")
-        sys.exit(1)
-    except json.JSONDecodeError:
-        print(f"Error: The file {file_path} is not a valid JSON.")
-        sys.exit(1)
+        raise FileNotFoundError(f"The file {file_path} does not exist.")
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError(f"The file {file_path} is not a valid JSON. Error: {e}", e.doc, e.pos)
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) != 2:
         print("Usage: python main.py <config_file>")
         sys.exit(1)
     
     config = read_config(sys.argv[1])
     print(f"Config loaded successfully. Name: {config['name']}, Version: {config['version']}")
+
+if __name__ == "__main__":
+    main()
