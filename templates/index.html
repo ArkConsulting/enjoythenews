@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if flash %}
+<div class="mb-4 bg-green-100 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-lg">
+  ✓ {{ flash }}
+</div>
+{% endif %}
+
+<!-- Kildefilter -->
+<div class="flex flex-wrap gap-2 mb-6">
+  <a href="/"
+     class="text-sm px-3 py-1 rounded-full border transition-colors
+            {% if not active_source %}bg-amber-500 text-white border-amber-500{% else %}bg-white text-gray-600 border-gray-200 hover:border-amber-300{% endif %}">
+    Alle
+  </a>
+  {% for s in sources %}
+  <a href="/?source={{ s }}"
+     class="text-sm px-3 py-1 rounded-full border transition-colors
+            {% if active_source == s %}bg-amber-500 text-white border-amber-500{% else %}bg-white text-gray-600 border-gray-200 hover:border-amber-300{% endif %}">
+    {{ s }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Artikkelliste -->
+<div id="article-list" class="flex flex-col gap-4">
+  {% include "partials/articles.html" %}
+</div>
+
+<!-- Spinner -->
+<div id="spinner" class="htmx-indicator text-center py-4 text-amber-500 text-sm">
+  Laster...
+</div>
+
+{% endblock %}

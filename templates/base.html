@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnjoyTheNews — Gode nyheter fra verden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    .source-badge { @apply text-xs font-medium px-2 py-0.5 rounded-full; }
+    .card-hover { @apply transition-shadow duration-200 hover:shadow-md; }
+  </style>
+</head>
+<body class="bg-amber-50 min-h-screen font-sans text-gray-800">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-amber-100 shadow-sm sticky top-0 z-10">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-amber-600">EnjoyTheNews</h1>
+        <p class="text-xs text-gray-400">Gode nyheter fra verden</p>
+      </div>
+      <form hx-post="/refresh" hx-target="body" hx-swap="outerHTML">
+        <button type="submit"
+          class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+          Oppdater nyheter
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="text-center text-xs text-gray-400 py-8">
+    Kun positive nyheter &mdash; Tailwind CDN er brukt for MVP, bytt til CLI-build i produksjon.
+  </footer>
+
+</body>
+</html>
