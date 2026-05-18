@@ -1,4 +1,5 @@
 .aider*
 __pycache__/
 *.db
+archive/
 

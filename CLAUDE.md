@@ -10,6 +10,18 @@ Prefer the simplest solution that works. Avoid frameworks, abstractions, and dep
 
 All file content (code, comments, templates, config) must be written in English, regardless of the language used in the prompt.
 
+## Deleting files
+
+Never delete files with rm. Move them to archive/ instead:
+```bash
+mv somefile.py archive/
+```
+This keeps files recoverable without relying on git history.
+
+## External actions
+
+Always ask for confirmation before actions that affect external systems: GitHub, git push, deployments, external APIs, and anything that cannot be undone locally.
+
 ## Commands
 
 ```bash

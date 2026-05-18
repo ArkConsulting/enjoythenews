@@ -5,6 +5,16 @@
       "Edit(*)",
       "Write(*)",
       "Read(*)"
+    ],
+    "deny": [
+      "Bash(gh *)",
+      "Bash(git push*)",
+      "Bash(curl*)",
+      "Bash(wget *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(rsync*)",
+      "Bash(rm -rf*)"
     ]
   }
 }
