@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnjoyTheNews — Mørk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { -webkit-font-smoothing: antialiased; }
+    /* Subtle amber glow at page top */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 400px;
+      background: radial-gradient(ellipse 60% 300px at 50% -100px, rgba(245, 158, 11, 0.04) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body class="bg-[#0a0a0a] text-gray-100 font-sans min-h-screen">
+
+  <!-- Sticky header -->
+  <header class="sticky top-0 z-50 bg-[#0a0a0a]/95 border-b border-[#1f1f1f]" style="backdrop-filter: blur(8px);">
+    <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+        <h1 class="font-semibold text-white text-[15px] tracking-tight">EnjoyTheNews</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <time class="text-[11px] text-gray-600 hidden sm:block">19. mai 2026</time>
+        <button class="text-[11px] text-amber-400 border border-amber-400/25 hover:border-amber-400/60 hover:bg-amber-400/5 px-3 py-1.5 transition-colors tracking-wide">
+          Oppdater
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Source filter -->
+  <div class="border-b border-[#1f1f1f] relative z-10">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="flex overflow-x-auto">
+        <button class="text-[11px] text-amber-400 border-b border-amber-400 px-4 py-3 whitespace-nowrap -mb-px font-medium tracking-wide">Alle</button>
+        <button class="text-[11px] text-gray-500 hover:text-gray-300 border-b border-transparent px-4 py-3 whitespace-nowrap -mb-px transition-colors tracking-wide">Positive News</button>
+        <button class="text-[11px] text-gray-500 hover:text-gray-300 border-b border-transparent px-4 py-3 whitespace-nowrap -mb-px transition-colors tracking-wide">Good News Network</button>
+        <button class="text-[11px] text-gray-500 hover:text-gray-300 border-b border-transparent px-4 py-3 whitespace-nowrap -mb-px transition-colors tracking-wide">Futurity</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-6 py-6 relative z-10">
+
+    <!-- Featured article -->
+    <article class="border border-[#1f1f1f] p-6 mb-3 hover:border-amber-400/20 transition-all duration-200 group cursor-pointer">
+      <div class="flex gap-6">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-amber-400 text-[10px] uppercase tracking-widest font-medium mb-1">Positive News</div>
+          <div class="text-gray-600 text-[10px] mb-3">19. mai 2026</div>
+          <div class="text-gray-700 text-[10px] uppercase tracking-widest">4 min lesing</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-white text-xl font-semibold leading-snug mb-3 group-hover:text-amber-400 transition-colors duration-200">
+            Gene therapy restores hearing in children born deaf, landmark trial reports
+          </h2>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Eleven children who were born completely deaf have gained functional hearing following a single gene therapy injection. Researchers say the approach targets the most common genetic cause of congenital deafness — potentially transforming outcomes for thousands of children born each year who would otherwise grow up without sound.
+          </p>
+          <a href="#" class="text-amber-400 text-[12px] hover:text-amber-300 transition-colors tracking-wide">Les artikkelen →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Article list -->
+    <div class="border border-[#1f1f1f] divide-y divide-[#1f1f1f]">
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-orange-400 text-[10px] uppercase tracking-widest font-medium mb-1">Good News</div>
+          <div class="text-gray-600 text-[10px]">18. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            18 rescue workers toil for 6 hours to save dog trapped underground
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            Emergency teams in rural Italy spent an entire afternoon tunneling through compacted earth to reach a beagle who had chased a rabbit into a collapsed burrow. The dog emerged unharmed to applause from onlookers.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-indigo-400 text-[10px] uppercase tracking-widest font-medium mb-1">Futurity</div>
+          <div class="text-gray-600 text-[10px]">18. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            AI model helps doctors detect rare diseases 40% faster, study finds
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            A machine learning tool trained on millions of anonymized medical records can flag patterns consistent with rare metabolic disorders earlier than traditional screening — potentially halving the average diagnostic delay of 4.7 years.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-amber-400 text-[10px] uppercase tracking-widest font-medium mb-1">Positive News</div>
+          <div class="text-gray-600 text-[10px]">17. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            European cities see 30% drop in air pollution after cycling infrastructure boost
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            Cities that invested heavily in protected cycling lanes saw measurable improvements in nitrogen dioxide levels within two years, with Amsterdam, Copenhagen, and Oslo leading the results.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-orange-400 text-[10px] uppercase tracking-widest font-medium mb-1">Good News</div>
+          <div class="text-gray-600 text-[10px]">17. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            Solar-powered desalination plant brings clean water to 5,000 remote villagers
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            A compact solar unit in coastal Senegal now provides clean drinking water to five villages that previously relied on weekly tanker deliveries, built for under $80,000 with no grid connection.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-indigo-400 text-[10px] uppercase tracking-widest font-medium mb-1">Futurity</div>
+          <div class="text-gray-600 text-[10px]">16. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            New treatment shows 90% success rate in clinical trials for childhood leukemia
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            A next-generation CAR-T cell therapy produced complete remission in nine out of ten pediatric patients with relapsed acute lymphoblastic leukemia, with most remaining cancer-free at 18 months.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-amber-400 text-[10px] uppercase tracking-widest font-medium mb-1">Positive News</div>
+          <div class="text-gray-600 text-[10px]">16. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            UK announces largest ever rewilding project, returning 30,000 acres to nature
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            The Scottish Highlands will host a new conservation corridor spanning three counties, reintroducing beavers, pine martens, and eventually lynx over a 20-year programme.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-orange-400 text-[10px] uppercase tracking-widest font-medium mb-1">Good News</div>
+          <div class="text-gray-600 text-[10px]">15. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            Volunteers plant one million trees in a single weekend across 12 countries
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            Coordinated by youth-led environmental groups, the mass planting event set a new verified record for simultaneous tree planting across three continents.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-amber-400 text-[10px] uppercase tracking-widest font-medium mb-1">Positive News</div>
+          <div class="text-gray-600 text-[10px]">15. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            Scientists develop biodegradable plastic from seaweed that dissolves in weeks
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            Researchers at Edinburgh created a fully compostable packaging material from brown seaweed, breaking down in under six weeks without leaving microplastics.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-amber-400 text-[10px] uppercase tracking-widest font-medium mb-1">Positive News</div>
+          <div class="text-gray-600 text-[10px]">14. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            Community garden transforms abandoned lot into urban oasis feeding 200 families
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            A derelict industrial plot in East Manchester is now a thriving 2-acre food garden producing four tonnes of vegetables annually, managed entirely by local residents.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex gap-6 px-6 py-5 hover:bg-[#111111] transition-colors group cursor-pointer">
+        <div class="w-32 shrink-0 text-right pt-0.5">
+          <div class="text-indigo-400 text-[10px] uppercase tracking-widest font-medium mb-1">Futurity</div>
+          <div class="text-gray-600 text-[10px]">14. mai 2026</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-gray-100 text-[15px] font-medium leading-snug mb-1.5 group-hover:text-white transition-colors">
+            Indigenous land management reduces wildfire risk by half, researchers find
+          </h3>
+          <p class="text-gray-500 text-[13px] leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            Traditional burning practices used by Indigenous communities in Australia significantly reduce the frequency and intensity of uncontrolled wildfires in managed areas, a new study confirms.
+          </p>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Load more -->
+    <div class="mt-5 text-center">
+      <button class="text-[11px] text-gray-500 hover:text-amber-400 border border-[#1f1f1f] hover:border-amber-400/30 px-8 py-3 transition-colors uppercase tracking-widest">
+        Last flere artikler
+      </button>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#1f1f1f] mt-10 py-6 relative z-10">
+    <div class="max-w-4xl mx-auto px-6 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+        <span class="text-gray-600 text-[11px] tracking-wide">EnjoyTheNews</span>
+      </div>
+      <span class="text-gray-700 text-[11px]">Positive nyheter fra hele verden</span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnjoyTheNews — Minimal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Playfair Display', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+    /* Subtle text rendering */
+    body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  </style>
+</head>
+<body class="bg-[#FAFAF8] text-gray-900 font-sans">
+
+  <!-- Masthead -->
+  <header class="border-b-2 border-gray-900 py-5">
+    <div class="max-w-[700px] mx-auto px-6">
+      <div class="flex items-baseline justify-between">
+        <h1 class="font-serif text-3xl tracking-tight">EnjoyTheNews</h1>
+        <div class="text-right">
+          <p class="text-[10px] uppercase tracking-widest text-gray-400">Mandag 19. mai 2026</p>
+          <p class="text-[10px] uppercase tracking-widest text-gray-400 mt-0.5">Positive nyheter</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Source filter -->
+  <nav class="border-b border-gray-200 py-3">
+    <div class="max-w-[700px] mx-auto px-6">
+      <div class="flex gap-5 text-[11px] uppercase tracking-widest overflow-x-auto">
+        <a href="#" class="text-gray-900 border-b border-gray-900 pb-0.5 whitespace-nowrap">Alle</a>
+        <a href="#" class="text-gray-400 hover:text-gray-700 transition-colors whitespace-nowrap">Positive News</a>
+        <a href="#" class="text-gray-400 hover:text-gray-700 transition-colors whitespace-nowrap">Good News Network</a>
+        <a href="#" class="text-gray-400 hover:text-gray-700 transition-colors whitespace-nowrap">Futurity</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-[700px] mx-auto px-6 pb-20">
+
+    <!-- Featured article -->
+    <article class="py-10 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-teal-700">Positive News</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] uppercase tracking-widest text-gray-400">Vitenskap</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] text-gray-400">4 min lesing</span>
+      </div>
+      <h2 class="font-serif text-[2.1rem] leading-tight mb-4 hover:text-gray-600 cursor-pointer transition-colors">
+        Gene therapy restores hearing in children born deaf, landmark trial reports
+      </h2>
+      <p class="text-gray-500 text-[15px] leading-relaxed mb-5 max-w-[580px]">
+        Eleven children who were born completely deaf have gained functional hearing following a single gene therapy injection, according to results published in Nature Medicine. Researchers say the approach targets the most common genetic cause of congenital deafness — potentially transforming outcomes for the thousands of children born each year who would otherwise grow up without sound.
+      </p>
+      <a href="#" class="text-[12px] text-gray-900 underline underline-offset-4 hover:text-gray-500 transition-colors">Les artikkelen →</a>
+    </article>
+
+    <!-- Article 2 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-orange-600">Good News Network</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] text-gray-400">2 min lesing</span>
+      </div>
+      <h2 class="font-serif text-2xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        18 rescue workers toil for 6 hours to save dog trapped underground
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        Emergency teams in rural Italy spent an entire afternoon tunneling through compacted earth to reach a beagle who had chased a rabbit into a collapsed burrow. The dog emerged unharmed to applause from a crowd of onlookers.
+      </p>
+    </article>
+
+    <!-- Article 3 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-indigo-600">Futurity</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] text-gray-400">3 min lesing</span>
+      </div>
+      <h2 class="font-serif text-2xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        New treatment shows 90% success rate in clinical trials for childhood leukemia
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        A next-generation CAR-T cell therapy produced complete remission in nine out of ten pediatric patients with relapsed acute lymphoblastic leukemia, with most remaining cancer-free at the 18-month follow-up point.
+      </p>
+    </article>
+
+    <!-- Article 4 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-teal-700">Positive News</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] uppercase tracking-widest text-gray-400">Natur</span>
+      </div>
+      <h2 class="font-serif text-xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        UK announces largest ever rewilding project, returning 30,000 acres to nature
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        The Scottish Highlands will host a new conservation corridor spanning three counties, reintroducing beavers, pine martens, and eventually lynx over a 20-year programme supported by both government and private philanthropists.
+      </p>
+    </article>
+
+    <!-- Article 5 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-teal-700">Positive News</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] uppercase tracking-widest text-gray-400">Vitenskap</span>
+      </div>
+      <h2 class="font-serif text-xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        Scientists develop biodegradable plastic from seaweed that dissolves in weeks
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        A team of researchers at the University of Edinburgh has created a fully compostable packaging material derived from brown seaweed, capable of breaking down in under six weeks in normal soil conditions — without leaving microplastics behind.
+      </p>
+    </article>
+
+    <!-- Article 6 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-teal-700">Positive News</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] uppercase tracking-widest text-gray-400">Klima</span>
+      </div>
+      <h2 class="font-serif text-xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        European cities see 30% drop in air pollution after cycling infrastructure boost
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        Cities that invested heavily in protected cycling lanes saw measurable improvements in nitrogen dioxide levels within two years, a pan-European study has found, with Amsterdam, Copenhagen, and Oslo leading the results.
+      </p>
+    </article>
+
+    <!-- Article 7 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-orange-600">Good News Network</span>
+      </div>
+      <h2 class="font-serif text-xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        Solar-powered desalination plant brings clean water to 5,000 remote villagers
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        A compact solar desalination unit installed in coastal Senegal now provides clean drinking water to five villages that previously relied on a weekly tanker delivery. The system was built for under $80,000 and requires no grid connection.
+      </p>
+    </article>
+
+    <!-- Article 8 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-indigo-600">Futurity</span>
+      </div>
+      <h2 class="font-serif text-xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        AI model helps doctors detect rare diseases 40% faster, study finds
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        A machine learning tool trained on millions of anonymized medical records can flag patterns consistent with rare metabolic disorders earlier than traditional screening — potentially halving the average diagnostic delay of 4.7 years.
+      </p>
+    </article>
+
+    <!-- Article 9 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-orange-600">Good News Network</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] uppercase tracking-widest text-gray-400">Natur</span>
+      </div>
+      <h2 class="font-serif text-xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        Volunteers plant one million trees in a single weekend across 12 countries
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        Coordinated by a coalition of youth-led environmental groups, the mass planting event set a new verified record for simultaneous tree planting, with participating countries spanning three continents.
+      </p>
+    </article>
+
+    <!-- Article 10 -->
+    <article class="py-8 border-b border-gray-100">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] uppercase tracking-widest font-medium text-teal-700">Positive News</span>
+        <span class="text-gray-300">·</span>
+        <span class="text-[10px] uppercase tracking-widest text-gray-400">Samfunn</span>
+      </div>
+      <h2 class="font-serif text-xl leading-tight mb-3 hover:text-gray-600 cursor-pointer transition-colors">
+        Community garden transforms abandoned lot into urban oasis feeding 200 families
+      </h2>
+      <p class="text-gray-500 text-sm leading-relaxed">
+        What was once a derelict industrial plot in East Manchester is now a thriving 2-acre food garden producing over four tonnes of vegetables annually, managed entirely by local residents including many new arrivals learning English through the project.
+      </p>
+    </article>
+
+    <!-- Load more -->
+    <div class="pt-10 text-center">
+      <button class="text-[11px] uppercase tracking-widest text-gray-400 hover:text-gray-900 border border-gray-200 hover:border-gray-400 px-8 py-3 transition-colors">
+        Last flere artikler
+      </button>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 py-8">
+    <div class="max-w-[700px] mx-auto px-6 flex items-center justify-between">
+      <span class="font-serif text-sm text-gray-400">EnjoyTheNews</span>
+      <button class="text-[11px] uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
+        Oppdater nyheter
+      </button>
+    </div>
+  </footer>
+
+</body>
+</html>
