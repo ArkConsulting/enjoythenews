@@ -22,6 +22,40 @@ This keeps files recoverable without relying on git history.
 
 Always ask for confirmation before actions that affect external systems: GitHub, git push, deployments, external APIs, and anything that cannot be undone locally.
 
+## What we are building
+
+This repo serves two purposes in parallel:
+
+**1. enjoythenews** — a live positive news aggregator (FastAPI + Htmx + SQLite), deployed on Hetzner.
+
+**2. A Lovable-like app generation system** — built incrementally as reusable tooling alongside enjoythenews. Three components:
+
+### designs/
+Design exploration sandbox. Self-contained HTML files — one per variant, no shared code, no dependencies. Organised by site category then variant:
+```
+designs/
+└── news/
+    ├── minimal/index.html
+    ├── magazine/index.html
+    └── dark/index.html
+```
+Each `index.html` is a complete, browser-openable file with hardcoded example content and Tailwind CDN. These are drafts — not connected to FastAPI. When a design is approved, it is manually converted to Jinja2 templates and moved to `src/`.
+
+AI workflow: give Claude an existing `index.html` as few-shot context, then prompt for a variant. One file = full context = better output.
+
+### ops/
+General-purpose shell scripts for infrastructure and deployment. Not specific to enjoythenews — parameterised so they work for any app on any Hetzner server.
+```
+ops/
+├── server-setup.sh    # install dependencies, clone repo, configure systemd + nginx
+├── deploy.sh          # git pull + restart service on remote server
+├── ssl-setup.sh       # Certbot SSL for a domain
+└── server-status.sh   # check service status and logs
+```
+
+### Versioning strategy
+App versions are git tags (`v1`, `v2`, `v3`). Git is used programmatically as the versioning engine — efficient storage (diffs only), built-in diff, log, and checkout. Future GUI reads `git log` to list versions, checks out to a temp directory for preview, and uses `git checkout <tag>` for rollback. Do not implement a parallel manual folder-based versioning system.
+
 ## Commands
 
 ```bash
@@ -45,15 +79,15 @@ Three flat modules + Jinja2 templates. No subdirectory nesting.
 3. `db.py` — SQLite via stdlib `sqlite3` (not async). Single table `articles` with `UNIQUE` on `link` for deduplication. `DB_PATH = "enjoythenews.db"` is relative, so the server must be started from project root.
 
 **Frontend pattern:**
-- `templates/base.html` — full page shell with Tailwind CDN and Htmx CDN loaded
-- `templates/index.html` — extends base; renders source filter tabs + `#article-list` div
-- `templates/partials/articles.html` — renders article cards + "Last flere" button; used both by full-page render (via `{% include %}`) and by the Htmx `/articles` GET endpoint for infinite scroll
+- `src/base.html` — full page shell with Tailwind CDN and Htmx CDN loaded
+- `src/index.html` — extends base; renders source filter tabs + `#article-list` div
+- `src/partials/articles.html` — renders article cards + "Last flere" button; used both by full-page render (via `{% include %}`) and by the Htmx `/articles` GET endpoint for infinite scroll
 
 Htmx "Last flere" swaps `beforeend` into `#article-list` using `GET /articles?offset=N&source=X`. The partial only renders the button when exactly 30 articles are returned (signals more may exist).
 
 ## Adding news sources
 
-Edit `SOURCES` in `feeds.py`. Each source needs `name` and `url` (RSS). The source name is used as a filter key in the UI and as a color key in `templates/partials/articles.html` (`source_colors` dict) — add a color entry there too.
+Edit `SOURCES` in `feeds.py`. Each source needs `name` and `url` (RSS). The source name is used as a filter key in the UI and as a color key in `src/partials/articles.html` (`source_colors` dict) — add a color entry there too.
 
 ## Known constraints
 

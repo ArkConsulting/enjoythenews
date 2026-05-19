@@ -5,7 +5,7 @@ import db
 import feeds
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="src")
 
 
 @app.on_event("startup")
