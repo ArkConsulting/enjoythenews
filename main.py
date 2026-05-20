@@ -1,4 +1,7 @@
-from fastapi import FastAPI, Request, Query
+from datetime import datetime, timezone
+import email.utils
+
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import ai
@@ -9,6 +12,29 @@ app = FastAPI()
 templates = Jinja2Templates(directory="src")
 
 
+def _timeago(value: str) -> str:
+    if not value:
+        return ""
+    try:
+        dt = email.utils.parsedate_to_datetime(value)
+        diff = datetime.now(timezone.utc) - dt
+        if diff.days == 0:
+            hours = diff.seconds // 3600
+            if hours == 0:
+                return "Akkurat nå"
+            return f"{hours} time{'r' if hours != 1 else ''} siden"
+        if diff.days == 1:
+            return "I går"
+        if diff.days < 7:
+            return f"{diff.days} dager siden"
+        return dt.strftime("%-d. %b %Y")
+    except Exception:
+        return value or ""
+
+
+templates.env.filters["timeago"] = _timeago
+
+
 @app.on_event("startup")
 def startup():
     db.init()
@@ -16,29 +42,11 @@ def startup():
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, source: str | None = None):
-    articles = db.get_articles(limit=30, source=source)
-    sources = db.get_sources()
+def index(request: Request):
+    articles = db.get_articles(limit=30)
     return templates.TemplateResponse("index.html", {
         "request": request,
         "articles": articles,
-        "sources": sources,
-        "active_source": source,
-    })
-
-
-@app.get("/articles", response_class=HTMLResponse)
-def load_more(
-    request: Request,
-    offset: int = Query(0),
-    source: str | None = Query(None),
-):
-    articles = db.get_articles(limit=30, offset=offset, source=source)
-    return templates.TemplateResponse("partials/articles.html", {
-        "request": request,
-        "articles": articles,
-        "offset": offset + 30,
-        "source": source,
     })
 
 
@@ -46,12 +54,9 @@ def load_more(
 def refresh(request: Request):
     new_count = _do_refresh()
     articles = db.get_articles(limit=30)
-    sources = db.get_sources()
     return templates.TemplateResponse("index.html", {
         "request": request,
         "articles": articles,
-        "sources": sources,
-        "active_source": None,
         "flash": f"{new_count} nye artikler hentet",
     })
 
