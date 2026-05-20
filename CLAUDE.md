@@ -2,13 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Core principle: dogfooding
+
+We are building the Lovable-like app generation system *by using it* to build enjoythenews. This means we are simultaneously the producer and the user of the system. Every tool, workflow, and convention we establish gets real-world validation immediately.
+
+Practical consequence: when suggesting how to build a Lovable feature, always frame it in terms of how it would work for enjoythenews first. If it doesn't solve a real problem we have right now, it's premature. enjoythenews is the test case — not a demo, not a toy.
+
 ## Philosophy
 
 Prefer the simplest solution that works. Avoid frameworks, abstractions, and dependencies unless they solve a concrete problem. A flat file beats a database, a shell script beats a service, stdlib beats a library.
 
+## Updating this file
+
+When we have discussed an approach and reached agreement on a smart solution, suggest updating CLAUDE.md to capture the decision. Do not update silently — propose the addition and get confirmation first.
+
 ## Language
 
-All file content (code, comments, templates, config) must be written in English, regardless of the language used in the prompt.
+All content must be written in English: code, comments, templates, config, and documentation including CLAUDE.md updates. The user writes in Norwegian — responses and conversation can be in Norwegian, but everything written to files must be in English. This keeps the codebase readable, searchable, and shareable regardless of audience.
 
 ## Deleting files
 
@@ -28,20 +38,7 @@ This repo serves two purposes in parallel:
 
 **1. enjoythenews** — a live positive news aggregator (FastAPI + Htmx + SQLite), deployed on Hetzner.
 
-**2. A Lovable-like app generation system** — built incrementally as reusable tooling alongside enjoythenews. Three components:
-
-### designs/
-Design exploration sandbox. Self-contained HTML files — one per variant, no shared code, no dependencies. Organised by site category then variant:
-```
-designs/
-└── news/
-    ├── minimal/index.html
-    ├── magazine/index.html
-    └── dark/index.html
-```
-Each `index.html` is a complete, browser-openable file with hardcoded example content and Tailwind CDN. These are drafts — not connected to FastAPI. When a design is approved, it is manually converted to Jinja2 templates and moved to `src/`.
-
-AI workflow: give Claude an existing `index.html` as few-shot context, then prompt for a variant. One file = full context = better output.
+**2. A Lovable-like app generation system** — built incrementally as reusable tooling alongside enjoythenews. Four components:
 
 ### ops/
 General-purpose shell scripts for infrastructure and deployment. Not specific to enjoythenews — parameterised so they work for any app on any Hetzner server.
@@ -53,8 +50,54 @@ ops/
 └── server-status.sh   # check service status and logs
 ```
 
+### tools/
+Small, self-contained scripts that the LLM orchestrator calls as discrete tools. Each script does exactly one thing and is usable independently of any LLM. Examples:
+```
+tools/generate.py     # produce a template from designs/ + user prompt
+tools/version.sh      # create, list, or check out git tags
+tools/preview.sh      # start a preview server for a specific version
+```
+The division of responsibility is strict: **scripts execute, Claude understands intent**. A script never tries to interpret the user's goal; Claude never tries to do what a script should handle. New capability = new script. Claude immediately gains access to it without any wiring.
+
+**Model sizing:** use the cheapest model that reliably handles the task. Claude Haiku (or similar small models) for well-defined batch work (e.g. article classification). Large Claude for orchestration, ambiguity resolution, and code generation. Local LLMs are a future optimisation — do not add that complexity until API cost is a real constraint.
+
+### designs/
+Design exploration sandbox — also the AI's reference library for generating new apps. Self-contained HTML files — one per variant, no shared code, no dependencies. Organised by site category then variant:
+```
+designs/
+└── news/
+    ├── minimal/index.html
+    ├── magazine/index.html
+    ├── dark/index.html
+    ├── horizon/index.html
+    └── stripe/index.html
+```
+Each `index.html` is a complete, browser-openable file with hardcoded example content and Tailwind CDN. These are drafts — not connected to FastAPI. When a design is approved, it is manually converted to Jinja2 templates and moved to `src/`.
+
+AI workflow: give Claude an existing `index.html` as few-shot context, then prompt for a variant. One file = full context = better output. The more variants in `designs/`, the better the generator becomes.
+
+In a Lovable-like flow the user never touches `designs/` — they interact with the live app in `src/`, and `designs/` serves as the template bank Claude draws from when generating.
+
 ### Versioning strategy
-App versions are git tags (`v1`, `v2`, `v3`). Git is used programmatically as the versioning engine — efficient storage (diffs only), built-in diff, log, and checkout. Future GUI reads `git log` to list versions, checks out to a temp directory for preview, and uses `git checkout <tag>` for rollback. Do not implement a parallel manual folder-based versioning system.
+App versions are git tags (`v1`, `v2`, `v3`). Git is the versioning engine — efficient storage, built-in diff, log, and rollback. Do not implement a parallel manual folder-based versioning system.
+
+There is one `src/` directory. Tags are checkpoints, not parallel deployments. Production always runs `HEAD` of `main`.
+
+**Deploy flow:**
+```
+[Edit environment]              [Production / Hetzner]
+
+  Make changes in src/
+  Preview locally
+  "Publish" →
+    git commit
+    git tag v3
+    git push            →→→    git pull + systemctl restart
+```
+
+**Rollback:** `git checkout v2 -- src/` + commit + push + pull. Do not check out the entire repo to an old tag in production.
+
+**Edit environment:** the `/edit` page is where new versions are created. The first implementation is prompt-based — the user describes a change, Claude updates `src/`, and the user can preview before publishing. Direct in-browser code editing is a later addition.
 
 ## Commands
 

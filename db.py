@@ -18,6 +18,12 @@ def init():
                 fetched_at TEXT DEFAULT (datetime('now'))
             )
         """)
+        # migrations: add columns introduced after initial schema
+        for col, typedef in [("category", "TEXT"), ("score", "REAL")]:
+            try:
+                conn.execute(f"ALTER TABLE articles ADD COLUMN {col} {typedef}")
+            except sqlite3.OperationalError:
+                pass  # column already exists
 
 
 @contextmanager
@@ -31,14 +37,31 @@ def connect():
         conn.close()
 
 
+def filter_new(articles: list[dict]) -> list[dict]:
+    """Return only articles whose link is not already in the database."""
+    if not articles:
+        return []
+    links = [a["link"] for a in articles]
+    placeholders = ",".join("?" * len(links))
+    with connect() as conn:
+        existing = {
+            r["link"]
+            for r in conn.execute(
+                f"SELECT link FROM articles WHERE link IN ({placeholders})", links
+            ).fetchall()
+        }
+    return [a for a in articles if a["link"] not in existing]
+
+
 def upsert_articles(articles: list[dict]) -> int:
     new_count = 0
     with connect() as conn:
         for a in articles:
             try:
                 conn.execute(
-                    """INSERT INTO articles (title, link, summary, published, author, source)
-                       VALUES (:title, :link, :summary, :published, :author, :source)""",
+                    """INSERT INTO articles
+                       (title, link, summary, published, author, source, category, score)
+                       VALUES (:title, :link, :summary, :published, :author, :source, :category, :score)""",
                     a,
                 )
                 new_count += 1

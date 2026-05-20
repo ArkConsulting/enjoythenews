@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+import ai
 import db
 import feeds
 
@@ -56,5 +57,9 @@ def refresh(request: Request):
 
 
 def _do_refresh() -> int:
-    articles = feeds.fetch_all()
-    return db.upsert_articles(articles)
+    raw = feeds.fetch_all()
+    new_only = db.filter_new(raw)
+    if not new_only:
+        return 0
+    classified = ai.classify(new_only)
+    return db.upsert_articles(classified)
