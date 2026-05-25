@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-import email.utils
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -16,7 +15,7 @@ def _timeago(value: str) -> str:
     if not value:
         return ""
     try:
-        dt = email.utils.parsedate_to_datetime(value)
+        dt = datetime.fromisoformat(value)
         diff = datetime.now(timezone.utc) - dt
         if diff.days == 0:
             hours = diff.seconds // 3600

@@ -1,5 +1,8 @@
 import sqlite3
 from contextlib import contextmanager
+from dataclasses import asdict
+
+from models import Article
 
 DB_PATH = "enjoythenews.db"
 
@@ -37,11 +40,24 @@ def connect():
         conn.close()
 
 
-def filter_new(articles: list[dict]) -> list[dict]:
+def _row_to_article(row) -> Article:
+    return Article(
+        title=row["title"],
+        link=row["link"],
+        source=row["source"] or "",
+        summary=row["summary"] or "",
+        published=row["published"] or "",
+        author=row["author"] or "",
+        category=row["category"] or "",
+        score=float(row["score"] or 0.0),
+    )
+
+
+def filter_new(articles: list[Article]) -> list[Article]:
     """Return only articles whose link is not already in the database."""
     if not articles:
         return []
-    links = [a["link"] for a in articles]
+    links = [a.link for a in articles]
     placeholders = ",".join("?" * len(links))
     with connect() as conn:
         existing = {
@@ -50,10 +66,10 @@ def filter_new(articles: list[dict]) -> list[dict]:
                 f"SELECT link FROM articles WHERE link IN ({placeholders})", links
             ).fetchall()
         }
-    return [a for a in articles if a["link"] not in existing]
+    return [a for a in articles if a.link not in existing]
 
 
-def upsert_articles(articles: list[dict]) -> int:
+def upsert_articles(articles: list[Article]) -> int:
     new_count = 0
     with connect() as conn:
         for a in articles:
@@ -62,7 +78,7 @@ def upsert_articles(articles: list[dict]) -> int:
                     """INSERT INTO articles
                        (title, link, summary, published, author, source, category, score)
                        VALUES (:title, :link, :summary, :published, :author, :source, :category, :score)""",
-                    a,
+                    asdict(a),
                 )
                 new_count += 1
             except sqlite3.IntegrityError:
@@ -70,7 +86,7 @@ def upsert_articles(articles: list[dict]) -> int:
     return new_count
 
 
-def get_articles(limit: int = 30, offset: int = 0, source: str | None = None) -> list[dict]:
+def get_articles(limit: int = 30, offset: int = 0, source: str | None = None) -> list[Article]:
     with connect() as conn:
         if source:
             rows = conn.execute(
@@ -82,7 +98,7 @@ def get_articles(limit: int = 30, offset: int = 0, source: str | None = None) ->
                 "SELECT * FROM articles ORDER BY published DESC LIMIT ? OFFSET ?",
                 (limit, offset),
             ).fetchall()
-        return [dict(r) for r in rows]
+        return [_row_to_article(r) for r in rows]
 
 
 def get_sources() -> list[str]:
