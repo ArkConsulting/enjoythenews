@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Three things being built simultaneously
+
+This repo is three projects at once. Always keep all three in mind when suggesting approaches:
+
+**1. enjoythenews** — a live positive news aggregator published on the internet (FastAPI + Htmx + SQLite, deployed on Hetzner). Real users, real traffic. Changes here have immediate consequences.
+
+**2. A Lovable-like app generation system** — a platform for generating and iterating on web apps via AI. enjoythenews is both the test case and the first app built with it. Every tool we create here should work for any app, not just enjoythenews.
+
+**3. An agent loop** (`agent/`) — a CLI agent in the spirit of Claude Code and GitHub Copilot CLI. Powers the Lovable system's orchestration layer. Built to be model-agnostic: routes tasks between local models (Ollama) and cloud models (Anthropic API) via LiteLLM. Designed for experimentation with memory, routing, and model selection.
+
+The three reinforce each other: enjoythenews validates the Lovable system, the Lovable system uses the agent loop, and the agent loop is dogfooded while building enjoythenews.
+
 ## Core principle: dogfooding
 
 We are building the Lovable-like app generation system *by using it* to build enjoythenews. This means we are simultaneously the producer and the user of the system. Every tool, workflow, and convention we establish gets real-world validation immediately.
