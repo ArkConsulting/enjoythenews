@@ -419,19 +419,59 @@
     sendBtn.disabled = true;
     appendMessage('user', text, false);
 
+    // Create assistant bubble immediately so text streams into it
+    const assistantEl = document.createElement('div');
+    assistantEl.className = 'message assistant';
+    const roleEl = document.createElement('div');
+    roleEl.className = 'message-role';
+    roleEl.textContent = 'Claude';
+    const bodyEl = document.createElement('div');
+    bodyEl.className = 'message-body';
+    assistantEl.appendChild(roleEl);
+    assistantEl.appendChild(bodyEl);
+    messages.appendChild(assistantEl);
+
     try {
       const res = await fetch('/edit/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
       });
-      const data = await res.json();
-      appendMessage('assistant', data.message, data.changed);
-      if (data.changed) {
-        preview.src = preview.src; // reload iframe
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop();
+
+        for (const part of parts) {
+          if (!part.startsWith('data: ')) continue;
+          const event = JSON.parse(part.slice(6));
+
+          if (event.type === 'text') {
+            bodyEl.textContent += event.delta;
+            messages.scrollTop = messages.scrollHeight;
+          } else if (event.type === 'done') {
+            // Replace raw streamed text (may include ```html block) with clean message
+            bodyEl.textContent = event.message;
+            if (event.changed) {
+              const badge = document.createElement('div');
+              badge.className = 'change-applied';
+              badge.textContent = '✓ Change applied — preview updated';
+              assistantEl.appendChild(badge);
+              preview.src = preview.src;
+            }
+          }
+        }
       }
     } catch {
-      appendMessage('assistant', 'Something went wrong. Please try again.', false);
+      bodyEl.textContent = 'Something went wrong. Please try again.';
     } finally {
       sendBtn.disabled = false;
       input.focus();

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import ai
@@ -83,10 +83,10 @@ def edit(request: Request):
 @app.post("/edit/chat")
 def edit_chat(body: ChatRequest):
     file_content = TEMPLATE_PATH.read_text()
-    result = editor.chat(body.message, file_content)
-    if result.new_content is not None:
-        TEMPLATE_PATH.write_text(result.new_content)
-    return {"message": result.message, "changed": result.new_content is not None}
+    return StreamingResponse(
+        editor.stream_chat(body.message, file_content, TEMPLATE_PATH),
+        media_type="text/event-stream",
+    )
 
 
 @app.post("/edit/publish")
