@@ -1,20 +1,30 @@
+from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+import httpx
 from pydantic import BaseModel
 import ai
 import db
 import feeds
-import tools.editor as editor
 import tools.version as version
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src")
 
 TEMPLATE_PATH = Path("src/index.html")
+AGENT_URL = "http://localhost:8766/chat"
+EDITOR_SYSTEM = """You are editing a Jinja2 HTML template for a positive news aggregator called Horisonten.
+
+Rules:
+- Preserve all Jinja2 syntax exactly: {{ }}, {% %}, {# #}
+- If making changes, end your response with the complete updated file in a fenced html code block.
+- Never return partial files or diffs — always the full file.
+- If no change is needed, respond conversationally with no code block."""
 
 
 class ChatRequest(BaseModel):
@@ -81,12 +91,37 @@ def edit(request: Request):
 
 
 @app.post("/edit/chat")
-def edit_chat(body: ChatRequest):
+async def edit_chat(body: ChatRequest):
     file_content = TEMPLATE_PATH.read_text()
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": f"Current template:\n\n```html\n{file_content}\n```", "cache_control": {"type": "ephemeral"}},
+                {"type": "text", "text": body.message},
+            ],
+        }
+    ]
     return StreamingResponse(
-        editor.stream_chat(body.message, file_content, TEMPLATE_PATH),
+        _proxy_agent(messages, EDITOR_SYSTEM),
         media_type="text/event-stream",
     )
+
+
+async def _proxy_agent(messages: list[dict], system: str) -> AsyncGenerator[str, None]:
+    async with httpx.AsyncClient(timeout=120) as client:
+        async with client.stream("POST", AGENT_URL, json={"messages": messages, "system": system}) as resp:
+            async for line in resp.aiter_lines():
+                if not line.startswith("data: "):
+                    continue
+                event = json.loads(line[6:])
+                if event["type"] == "done" and event.get("new_content"):
+                    TEMPLATE_PATH.write_text(event["new_content"])
+                    yield f"data: {json.dumps({'type': 'done', 'changed': True, 'message': event['message']})}\n\n"
+                elif event["type"] == "done":
+                    yield f"data: {json.dumps({'type': 'done', 'changed': False, 'message': event['message']})}\n\n"
+                else:
+                    yield line + "\n\n"
 
 
 @app.post("/edit/publish")
