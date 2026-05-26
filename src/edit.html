@@ -73,6 +73,22 @@
 
     .publish-btn:hover { background: #333; }
 
+    .undo-btn {
+      font-family: inherit;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #111;
+      background: none;
+      border: 1px solid #e8e8e8;
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .undo-btn:hover { border-color: #111; }
+
     .back-link {
       font-size: 0.65rem;
       font-weight: 700;
@@ -309,6 +325,7 @@
     <div class="logo">Horisont<span>en</span> <span style="font-weight:400;color:#bbb;font-size:0.85rem;">/ edit</span></div>
     <div class="topbar-right">
       <span class="tag-badge {% if current != 'unreleased' %}has-version{% endif %}">{{ current }}</span>
+      <button class="undo-btn" id="undo-btn" style="display:{% if has_undo %}inline-block{% else %}none{% endif %}">↩ Undo</button>
       <form method="post" action="/edit/publish" style="display:inline">
         <button type="submit" class="publish-btn">Publish {{ next_tag }}</button>
       </form>
@@ -382,8 +399,18 @@
   // Chat — send on Enter (Shift+Enter for newline), button click
   const input = document.getElementById('chat-input');
   const sendBtn = document.getElementById('send-btn');
+  const undoBtn = document.getElementById('undo-btn');
   const messages = document.getElementById('chat-messages');
   const preview = document.getElementById('preview');
+
+  undoBtn.addEventListener('click', async () => {
+    const res = await fetch('/edit/undo', { method: 'POST' });
+    const data = await res.json();
+    if (data.undone) {
+      preview.src = preview.src;
+      undoBtn.style.display = 'none';
+    }
+  });
 
   function appendMessage(role, text, changed) {
     const msg = document.createElement('div');
@@ -417,6 +444,7 @@
 
     input.value = '';
     sendBtn.disabled = true;
+    undoBtn.style.display = 'none';
     appendMessage('user', text, false);
 
     // Create assistant bubble immediately so text streams into it
@@ -466,6 +494,7 @@
               badge.textContent = '✓ Change applied — preview updated';
               assistantEl.appendChild(badge);
               preview.src = preview.src;
+              undoBtn.style.display = 'inline-block';
             }
           }
         }

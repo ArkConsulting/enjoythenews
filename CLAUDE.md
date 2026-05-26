@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This repo is three projects at once. Always keep all three in mind when suggesting approaches:
 
-**1. enjoythenews** — a live positive news aggregator published on the internet (FastAPI + Htmx + SQLite, deployed on Hetzner). Real users, real traffic. Changes here have immediate consequences.
+**1. enjoythenews** — a live positive news aggregator published on the internet (FastAPI + SQLite, deployed on Hetzner). Real users, real traffic. Changes here have immediate consequences.
 
 **2. A Lovable-like app generation system** — a platform for generating and iterating on web apps via AI. enjoythenews is both the test case and the first app built with it. Every tool we create here should work for any app, not just enjoythenews.
 
@@ -48,7 +48,7 @@ Always ask for confirmation before actions that affect external systems: GitHub,
 
 This repo serves two purposes in parallel:
 
-**1. enjoythenews** — a live positive news aggregator (FastAPI + Htmx + SQLite), deployed on Hetzner.
+**1. enjoythenews** — a live positive news aggregator (FastAPI + SQLite), deployed on Hetzner.
 
 **2. A Lovable-like app generation system** — built incrementally as reusable tooling alongside enjoythenews. Four components:
 
@@ -118,7 +118,10 @@ There is one `src/` directory. Tags are checkpoints, not parallel deployments. P
 # Install dependencies
 pip install -r requirements.txt
 
-# Run development server (must be run from project root)
+# Run agent loop (required for /edit/chat)
+uvicorn agent.main:app --port 8766
+
+# Run main app (must be run from project root)
 uvicorn main:app --reload --port 8765
 
 # Quick smoke test without a running server
@@ -135,15 +138,16 @@ Three flat modules + Jinja2 templates. No subdirectory nesting.
 3. `db.py` — SQLite via stdlib `sqlite3` (not async). Single table `articles` with `UNIQUE` on `link` for deduplication. `DB_PATH = "enjoythenews.db"` is relative, so the server must be started from project root.
 
 **Frontend pattern:**
-- `src/base.html` — full page shell with Tailwind CDN and Htmx CDN loaded
-- `src/index.html` — extends base; renders source filter tabs + `#article-list` div
-- `src/partials/articles.html` — renders article cards + "Last flere" button; used both by full-page render (via `{% include %}`) and by the Htmx `/articles` GET endpoint for infinite scroll
+- `src/index.html` — single self-contained file. Jinja2 renders full HTML server-side; vanilla JS handles interactivity (clicks, fetches, DOM updates).
+- No HTMX, no base template, no partials. One file = full context for the LLM.
+- Backend serves JSON endpoints. Frontend fetches and renders. No HTML partials over the wire.
+- Tailwind via CDN for styling (fine for development; switch to CLI build for production if needed).
 
-Htmx "Last flere" swaps `beforeend` into `#article-list` using `GET /articles?offset=N&source=X`. The partial only renders the button when exactly 30 articles are returned (signals more may exist).
+This is a deliberate decision: vanilla JS has far better LLM training data coverage than HTMX, and self-contained files let the LLM reason about the full template without needing server endpoint context. Matches the `designs/` philosophy.
 
 ## Adding news sources
 
-Edit `SOURCES` in `feeds.py`. Each source needs `name` and `url` (RSS). The source name is used as a filter key in the UI and as a color key in `src/partials/articles.html` (`source_colors` dict) — add a color entry there too.
+Edit `SOURCES` in `feeds.py`. Each source needs `name` and `url` (RSS). The source name is used as a filter key in the UI and as a color key in `src/index.html` (`source_colors` dict) — add a color entry there too.
 
 ## Known constraints
 

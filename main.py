@@ -17,6 +17,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="src")
 
 TEMPLATE_PATH = Path("src/index.html")
+UNDO_BUFFER_PATH = TEMPLATE_PATH.with_suffix(".undo_buffer")
 AGENT_URL = "http://localhost:8766/chat"
 EDITOR_SYSTEM = """You are editing a Jinja2 HTML template for a positive news aggregator called Horisonten.
 
@@ -87,6 +88,7 @@ def edit(request: Request):
         "current": version.current_tag(),
         "next_tag": version.next_tag(),
         "tags": version.list_tags(),
+        "has_undo": UNDO_BUFFER_PATH.exists(),
     })
 
 
@@ -116,12 +118,23 @@ async def _proxy_agent(messages: list[dict], system: str) -> AsyncGenerator[str,
                     continue
                 event = json.loads(line[6:])
                 if event["type"] == "done" and event.get("new_content"):
+                    UNDO_BUFFER_PATH.write_text(TEMPLATE_PATH.read_text())
                     TEMPLATE_PATH.write_text(event["new_content"])
                     yield f"data: {json.dumps({'type': 'done', 'changed': True, 'message': event['message']})}\n\n"
                 elif event["type"] == "done":
                     yield f"data: {json.dumps({'type': 'done', 'changed': False, 'message': event['message']})}\n\n"
                 else:
                     yield line + "\n\n"
+
+
+@app.post("/edit/undo")
+def edit_undo():
+    if not UNDO_BUFFER_PATH.exists():
+        return {"undone": False}
+    previous = UNDO_BUFFER_PATH.read_text()
+    UNDO_BUFFER_PATH.write_text(TEMPLATE_PATH.read_text())
+    TEMPLATE_PATH.write_text(previous)
+    return {"undone": True}
 
 
 @app.post("/edit/publish")
