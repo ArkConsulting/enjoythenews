@@ -1,15 +1,24 @@
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 import ai
 import db
 import feeds
+import tools.editor as editor
 import tools.version as version
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src")
+
+TEMPLATE_PATH = Path("src/index.html")
+
+
+class ChatRequest(BaseModel):
+    message: str
 
 
 def _timeago(value: str) -> str:
@@ -69,6 +78,27 @@ def edit(request: Request):
         "next_tag": version.next_tag(),
         "tags": version.list_tags(),
     })
+
+
+@app.post("/edit/chat")
+def edit_chat(body: ChatRequest):
+    file_content = TEMPLATE_PATH.read_text()
+    result = editor.chat(body.message, file_content)
+    if result.new_content is not None:
+        TEMPLATE_PATH.write_text(result.new_content)
+    return {"message": result.message, "changed": result.new_content is not None}
+
+
+@app.post("/edit/publish")
+def edit_publish():
+    version.publish()
+    return RedirectResponse("/edit", status_code=303)
+
+
+@app.post("/edit/rollback/{tag}")
+def edit_rollback(tag: str):
+    version.rollback(tag)
+    return RedirectResponse("/edit", status_code=303)
 
 
 def _do_refresh() -> int:
