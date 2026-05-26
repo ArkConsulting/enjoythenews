@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 import ai
 import db
 import feeds
+import tools.version as version
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src")
@@ -57,6 +58,16 @@ def refresh(request: Request):
         "request": request,
         "articles": articles,
         "flash": f"{new_count} nye artikler hentet",
+    })
+
+
+@app.get("/edit", response_class=HTMLResponse)
+def edit(request: Request):
+    return templates.TemplateResponse("edit.html", {
+        "request": request,
+        "current": version.current_tag(),
+        "next_tag": version.next_tag(),
+        "tags": version.list_tags(),
     })
 
 

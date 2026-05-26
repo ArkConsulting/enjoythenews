@@ -49,15 +49,16 @@ ops/
 ├── ssl-setup.sh       # Certbot SSL for a domain
 └── server-status.sh   # check service status and logs
 ```
+These stay as shell scripts because they run on remote servers where the project's Python environment may not exist yet (server-setup.sh *installs* the environment). Shell is the native language of systemctl, nginx, apt, and SSH.
 
 ### tools/
-Small, self-contained scripts that the LLM orchestrator calls as discrete tools. Each script does exactly one thing and is usable independently of any LLM. Examples:
+Small, self-contained Python modules that the LLM orchestrator calls as discrete tools. Each module does exactly one thing and is usable independently of any LLM. Default to Python — it is consistent with the rest of the codebase, readable by any model, and callable directly from main.py without subprocess indirection. Only use shell if the tool must run outside the Python environment.
 ```
 tools/generate.py     # produce a template from designs/ + user prompt
-tools/version.sh      # create, list, or check out git tags
-tools/preview.sh      # start a preview server for a specific version
+tools/version.py      # create, list, or check out git tags
+tools/preview.py      # start a preview server for a specific version
 ```
-The division of responsibility is strict: **scripts execute, Claude understands intent**. A script never tries to interpret the user's goal; Claude never tries to do what a script should handle. New capability = new script. Claude immediately gains access to it without any wiring.
+The division of responsibility is strict: **tools execute, Claude understands intent**. A tool never tries to interpret the user's goal; Claude never tries to do what a tool should handle. New capability = new tool. Claude immediately gains access to it without any wiring.
 
 **Model sizing:** use the cheapest model that reliably handles the task. Claude Haiku (or similar small models) for well-defined batch work (e.g. article classification). Large Claude for orchestration, ambiguity resolution, and code generation. Local LLMs are a future optimisation — do not add that complexity until API cost is a real constraint.
 
