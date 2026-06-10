@@ -20,6 +20,12 @@ We are building the Lovable-like app generation system *by using it* to build en
 
 Practical consequence: when suggesting how to build a Lovable feature, always frame it in terms of how it would work for enjoythenews first. If it doesn't solve a real problem we have right now, it's premature. enjoythenews is the test case — not a demo, not a toy.
 
+## Cross-project patterns
+
+Before building general functionality (streaming, agent loops, ...), check
+`~/dev/kode/funai/patterns/` for an existing pattern and its reference implementation.
+Propose updating the pattern file when this repo's implementation improves on it.
+
 ## Philosophy
 
 Prefer the simplest solution that works. Avoid frameworks, abstractions, and dependencies unless they solve a concrete problem. A flat file beats a database, a shell script beats a service, stdlib beats a library.
