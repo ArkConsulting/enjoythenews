@@ -1,10 +1,13 @@
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict
+from pathlib import Path
 
 from models import Article
 
-DB_PATH = "enjoythenews.db"
+# Resolve next to this module so the app works regardless of cwd.
+# Started from the repo root (as documented), this is still ./enjoythenews.db.
+DB_PATH = str(Path(__file__).resolve().parent / "enjoythenews.db")
 
 
 def init():
