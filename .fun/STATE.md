@@ -27,10 +27,17 @@ the `agent/` agent loop.
 - Tailwind via CDN (dev only).
 - No background scheduler — articles fetched at startup and manual `/refresh` only.
 
+## Feed fetching
+- Each RSS source is fetched with a bounded **10s timeout** (`FEED_TIMEOUT`) via
+  stdlib `urllib.request.urlopen`, then handed to `feedparser.parse()` as bytes
+  (feedparser is now a pure parser, no network). Stdlib-first — no `requests`,
+  threads, or signals. One slow/unreachable feed is logged and skipped; the rest
+  still populate the DB. Timeout is a module constant, not env-configurable.
+
 ## Open threads
 - **No README exists** anywhere in this repo (confirmed via `git ls-files`). A
   2026-07-02 proofread run found nothing to do; docs live in `CLAUDE.md`. If a
   README is wanted, it must be created deliberately — or it belongs in a sibling
   app repo / the funai workspace root.
 
-<!-- folded-through: 20260702-152927 -->
+<!-- folded-through: 20260702-173159 -->
