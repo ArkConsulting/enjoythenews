@@ -130,8 +130,9 @@ uvicorn agent.main:app --port 8766
 # Run main app (must be run from project root)
 uvicorn main:app --reload --port 8765
 
-# Quick smoke test without a running server
-python3 -c "from fastapi.testclient import TestClient; from main import app; r = TestClient(app).get('/'); print(r.status_code, len(r.text))"
+# The app's verification check — py_compile + no-network smoke (GET /).
+# Run by `fun` after every agent run; exit 0 = pass.
+./.fun/check
 ```
 
 ## Architecture
