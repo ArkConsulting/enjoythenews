@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. It is also this repo's only top-level documentation — there is deliberately no README.md; do not create one unless explicitly requested.
 
 ## Three things being built simultaneously
 
@@ -141,7 +141,7 @@ Three flat modules + Jinja2 templates. No subdirectory nesting.
 
 **Request flow:**
 1. `main.py` — FastAPI routes. On startup: `db.init()` then `feeds.fetch_all()` → `db.upsert_articles()`. The `/refresh` POST endpoint repeats this on demand.
-2. `feeds.py` — Fetches RSS from three hardcoded sources (`SOURCES` list) using `feedparser`. Returns plain dicts with keys: `title`, `link`, `summary`, `published`, `author`, `source`.
+2. `feeds.py` — Fetches RSS from three hardcoded sources (`SOURCES` list). Each feed's bytes are fetched via stdlib `urllib` with a bounded timeout (`FEED_TIMEOUT`), then handed to `feedparser.parse()` — never pass `feedparser` a URL, it fetches with no timeout and can hang forever. Returns plain dicts with keys: `title`, `link`, `summary`, `published`, `author`, `source`.
 3. `db.py` — SQLite via stdlib `sqlite3` (not async). Single table `articles` with `UNIQUE` on `link` for deduplication. `DB_PATH` resolves next to `db.py`, so database access works from any cwd (the DB file stays at the repo root).
 
 **Frontend pattern:**
