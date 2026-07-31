@@ -24,10 +24,6 @@ deliberately the repo's **only** top-level doc (no README, stated in its intro).
 - CLAUDE.md carries only the concise always-on constraint; code comments remain
   the detailed reference (avoids duplicating rationale in two places).
 
-## Known constraints
-- Tailwind via CDN (dev only).
-- No background scheduler — articles fetched at startup and manual `/refresh` only.
-
 ## Open threads
 - **Stale CLAUDE.md claim:** Architecture says `feeds.py` "returns plain dicts",
   but it returns `models.Article` instances (`feeds.py:40-60`, `models.py`).
