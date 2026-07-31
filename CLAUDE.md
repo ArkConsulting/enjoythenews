@@ -10,7 +10,7 @@ This repo is three projects at once. Always keep all three in mind when suggesti
 
 **2. A Lovable-like app generation system** — a platform for generating and iterating on web apps via AI. enjoythenews is both the test case and the first app built with it. Every tool we create here should work for any app, not just enjoythenews.
 
-**3. An agent loop** (`agent/`) — a CLI agent in the spirit of Claude Code and GitHub Copilot CLI. Powers the Lovable system's orchestration layer. Built to be model-agnostic: routes tasks between local models (Ollama) and cloud models (Anthropic API) via LiteLLM. Designed for experimentation with memory, routing, and model selection.
+**3. An agent loop** (`agent/`) — a CLI agent in the spirit of Claude Code and GitHub Copilot CLI. Powers the Lovable system's orchestration layer. Designed to be model-agnostic — routing between local models (Ollama) and cloud models via LiteLLM is planned; the current backend (`agent/claude.py`) streams to the Anthropic API only. Designed for experimentation with memory, routing, and model selection.
 
 The three reinforce each other: enjoythenews validates the Lovable system, the Lovable system uses the agent loop, and the agent loop is dogfooded while building enjoythenews.
 
@@ -52,11 +52,7 @@ Always ask for confirmation before actions that affect external systems: GitHub,
 
 ## What we are building
 
-This repo serves two purposes in parallel:
-
-**1. enjoythenews** — a live positive news aggregator (FastAPI + SQLite), deployed on Hetzner.
-
-**2. A Lovable-like app generation system** — built incrementally as reusable tooling alongside enjoythenews. Four components:
+The projects themselves are described at the top of this file. The Lovable-like app generation system is built incrementally as reusable tooling alongside enjoythenews. Four components:
 
 ### ops/
 General-purpose shell scripts for infrastructure and deployment. Not specific to enjoythenews — parameterised so they work for any app on any Hetzner server.
@@ -64,7 +60,6 @@ General-purpose shell scripts for infrastructure and deployment. Not specific to
 ops/
 ├── server-setup.sh    # install dependencies, clone repo, configure systemd + nginx
 ├── deploy.sh          # git pull + restart service on remote server
-├── ssl-setup.sh       # Certbot SSL for a domain
 └── server-status.sh   # check service status and logs
 ```
 These stay as shell scripts because they run on remote servers where the project's Python environment may not exist yet (server-setup.sh *installs* the environment). Shell is the native language of systemctl, nginx, apt, and SSH.
@@ -72,9 +67,8 @@ These stay as shell scripts because they run on remote servers where the project
 ### tools/
 Small, self-contained Python modules that the LLM orchestrator calls as discrete tools. Each module does exactly one thing and is usable independently of any LLM. Default to Python — it is consistent with the rest of the codebase, readable by any model, and callable directly from main.py without subprocess indirection. Only use shell if the tool must run outside the Python environment.
 ```
-tools/generate.py     # produce a template from designs/ + user prompt
-tools/version.py      # create, list, or check out git tags
-tools/preview.py      # start a preview server for a specific version
+tools/version.py      # create, list, and roll back git tags (vN)
+tools/editor.py       # LLM-powered Jinja2 template editor (chat + streaming)
 ```
 The division of responsibility is strict: **tools execute, Claude understands intent**. A tool never tries to interpret the user's goal; Claude never tries to do what a tool should handle. New capability = new tool. Claude immediately gains access to it without any wiring.
 
@@ -91,7 +85,7 @@ designs/
     ├── horizon/index.html
     └── stripe/index.html
 ```
-Each `index.html` is a complete, browser-openable file with hardcoded example content and Tailwind CDN. These are drafts — not connected to FastAPI. When a design is approved, it is manually converted to Jinja2 templates and moved to `src/`.
+Each `index.html` is a complete, browser-openable file with hardcoded example content, styled with Tailwind CDN or plain CSS. These are drafts — not connected to FastAPI. When a design is approved, it is manually converted to Jinja2 templates and moved to `src/`.
 
 AI workflow: give Claude an existing `index.html` as few-shot context, then prompt for a variant. One file = full context = better output. The more variants in `designs/`, the better the generator becomes.
 
@@ -137,26 +131,27 @@ uvicorn main:app --reload --port 8765
 
 ## Architecture
 
-Three flat modules + Jinja2 templates. No subdirectory nesting.
+Flat modules at the repo root (`main.py`, `feeds.py`, `db.py`, `models.py`, `ai.py`) + Jinja2 templates in `src/`, plus the `agent/` service and `tools/`.
 
 **Request flow:**
-1. `main.py` — FastAPI routes. On startup: `db.init()` then `feeds.fetch_all()` → `db.upsert_articles()`. The `/refresh` POST endpoint repeats this on demand.
-2. `feeds.py` — Fetches RSS from three hardcoded sources (`SOURCES` list). Each feed's bytes are fetched via stdlib `urllib` with a bounded timeout (`FEED_TIMEOUT`), then handed to `feedparser.parse()` — never pass `feedparser` a URL, it fetches with no timeout and can hang forever. Returns plain dicts with keys: `title`, `link`, `summary`, `published`, `author`, `source`.
-3. `db.py` — SQLite via stdlib `sqlite3` (not async). Single table `articles` with `UNIQUE` on `link` for deduplication. `DB_PATH` resolves next to `db.py`, so database access works from any cwd (the DB file stays at the repo root).
+1. `main.py` — FastAPI routes. On startup: `db.init()`, then a refresh: `feeds.fetch_all()` → `db.filter_new()` → `ai.classify()` → `db.upsert_articles()`. The `/refresh` POST endpoint repeats this on demand. The `/edit` routes proxy chat to the `agent/` service on port 8766.
+2. `feeds.py` — Fetches RSS from three hardcoded sources (`SOURCES` list). Each feed's bytes are fetched via stdlib `urllib` with a bounded timeout (`FEED_TIMEOUT`), then handed to `feedparser.parse()` — never pass `feedparser` a URL, it fetches with no timeout and can hang forever. Returns `models.Article` instances.
+3. `ai.py` — Claude Haiku batch classification of new articles: keeps only positive ones, adding `category` and `score`.
+4. `db.py` — SQLite via stdlib `sqlite3` (not async). Single table `articles` with `UNIQUE` on `link` for deduplication. `DB_PATH` resolves next to `db.py`, so database access works from any cwd (the DB file stays at the repo root).
+5. `models.py` — the `Article` dataclass shared by `feeds`, `ai`, and `db`.
 
 **Frontend pattern:**
-- `src/index.html` — single self-contained file. Jinja2 renders full HTML server-side; vanilla JS handles interactivity (clicks, fetches, DOM updates).
+- `src/index.html` (the app) and `src/edit.html` (the edit environment) — each a single self-contained file. Jinja2 renders full HTML server-side; vanilla JS handles interactivity (clicks, fetches, DOM updates).
 - No HTMX, no base template, no partials. One file = full context for the LLM.
 - Backend serves JSON endpoints. Frontend fetches and renders. No HTML partials over the wire.
-- Tailwind via CDN for styling (fine for development; switch to CLI build for production if needed).
+- Hand-written CSS in each file's `<style>` block (plus Google Fonts) — no CSS framework in `src/`.
 
 This is a deliberate decision: vanilla JS has far better LLM training data coverage than HTMX, and self-contained files let the LLM reason about the full template without needing server endpoint context. Matches the `designs/` philosophy.
 
 ## Adding news sources
 
-Edit `SOURCES` in `feeds.py`. Each source needs `name` and `url` (RSS). The source name is used as a filter key in the UI and as a color key in `src/index.html` (`source_colors` dict) — add a color entry there too.
+Edit `SOURCES` in `feeds.py`. Each source needs `name` and `url` (RSS). The source name is shown on each article card and colored by a per-source CSS class in `src/index.html` (`.source-<Name-with-dashes>` in the `<style>` block) — add a color rule there too.
 
 ## Known constraints
 
-- Tailwind is loaded via CDN (fine for development; switch to CLI build for production).
 - No background scheduler — articles are only fetched at startup and on manual refresh.
