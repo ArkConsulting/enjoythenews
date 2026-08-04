@@ -9,7 +9,7 @@
 - [ ] Reword the "Backend serves JSON endpoints" bullet in CLAUDE.md's Frontend pattern section: it reads as a description but the index is server-rendered and `/refresh` returns HTML. Restate it as a guideline for new endpoints (propose the wording, per CLAUDE.md's update rule).
 
 ## Harness
-- [ ] Make `./.fun/check` layer 2 (no-network GET / smoke) pass in the container: app deps (FastAPI etc.) are not importable there, so three runs in a row have passed layer 1 only. Investigate how the check can install or reach the app's requirements inside the container, or vendor a minimal path so the smoke actually runs.
+- [x] Make `./.fun/check` layer 2 (no-network GET / smoke) pass in the container — done 2026-08-04: when the deps aren't importable, the check now provisions them itself into a venv cached under `~/.cache/fun-check/enjoythenews-<requirements-hash>` (built once per `requirements.txt` change; the container firewall already allowlists pypi.org + files.pythonhosted.org). Reused across runs and worktrees; a failed build removes the partial venv and degrades to the old honest skip (exit 0). Verified: host direct, container first build, container cache hit (~1s), and the skip path.
 
 ## Later / operational
 - [ ] Background scheduler for feed refresh: articles are currently fetched only at startup and on manual `/refresh`. Design the simplest periodic refresh (e.g. systemd timer hitting `/refresh`, or an in-process asyncio task) consistent with the no-frameworks philosophy; update the Known constraints section when done.

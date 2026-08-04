@@ -1,19 +1,42 @@
 #!/bin/sh
 # .fun/check — this app's single verification entry point (exit 0 = pass).
 # Run by `fun run` after every agent run (and by the agent before committing).
-# Layered, cheapest first. Layer 2 needs the app deps (requirements.txt) and is
-# SKIPPED where they are missing (the funai container has none installed) —
-# layer 1 is always enforced. No network: the check must pass in the container,
-# whose egress is locked down, so the startup RSS refresh is patched out.
+# Layered, cheapest first; layer 1 is always enforced.
+#
+# Layer 2 needs the app deps (requirements.txt). Where they are not importable
+# (the funai container installs none system-wide), the check provisions them
+# itself: a venv cached under ~/.cache/fun-check, keyed by the requirements
+# hash — built once per requirements.txt change, reused by every later run
+# (worktrees share the cache; the container's pip egress is allowlisted:
+# pypi.org + files.pythonhosted.org). Only if that build fails does layer 2
+# skip, honestly, with the reason. The smoke itself stays no-network — the
+# startup RSS refresh is patched out.
 set -e
 cd "$(dirname "$0")/.."
 
 echo "check: layer 1 — py_compile every tracked .py"
 git ls-files '*.py' | xargs -r python3 -m py_compile
 
-if python3 -c 'import fastapi, uvicorn, jinja2, feedparser, anthropic, dotenv, httpx' 2>/dev/null; then
-  echo "check: layer 2 — in-process smoke: GET / renders (no network)"
-  python3 - <<'EOF'
+PY=python3
+if ! python3 -c 'import fastapi, uvicorn, jinja2, feedparser, anthropic, dotenv, httpx' 2>/dev/null; then
+  req_hash="$(sha256sum requirements.txt | cut -c1-16)"
+  venv="${XDG_CACHE_HOME:-$HOME/.cache}/fun-check/enjoythenews-$req_hash"
+  if [ ! -x "$venv/bin/python" ]; then
+    echo "check: layer 2 — building deps venv (once per requirements.txt change)…"
+    # A failed/partial build is removed so the next run retries cleanly.
+    if ! ( python3 -m venv "$venv" \
+           && "$venv/bin/pip" install -q --disable-pip-version-check -r requirements.txt ); then
+      rm -rf "$venv" 2>/dev/null || true
+      echo "check: layer 2 skipped — deps not importable and venv build failed (no pip egress here?)"
+      echo "check: OK"
+      exit 0
+    fi
+  fi
+  PY="$venv/bin/python"
+fi
+
+echo "check: layer 2 — in-process smoke: GET / renders (no network)"
+"$PY" - <<'EOF'
 import main
 main._do_refresh = lambda: 0   # startup() looks this up at call time — no RSS fetch
 from fastapi.testclient import TestClient
@@ -23,8 +46,5 @@ with TestClient(main.app) as client:   # `with` runs startup: db.init + patched 
     assert "<html" in r.text.lower(), "GET / returned no HTML"
 print("smoke: GET / -> 200, HTML rendered")
 EOF
-else
-  echo "check: layer 2 skipped — app deps not importable here (e.g. the funai container)"
-fi
 
 echo "check: OK"
