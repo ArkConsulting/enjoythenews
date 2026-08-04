@@ -5,12 +5,14 @@
 #
 # Layer 2 needs the app deps (requirements.txt). Where they are not importable
 # (the funai container installs none system-wide), the check provisions them
-# itself: a venv cached under ~/.cache/fun-check, keyed by the requirements
-# hash — built once per requirements.txt change, reused by every later run
-# (worktrees share the cache; the container's pip egress is allowlisted:
-# pypi.org + files.pythonhosted.org). Only if that build fails does layer 2
-# skip, honestly, with the reason. The smoke itself stays no-network — the
-# startup RSS refresh is patched out.
+# itself: a venv cached under $FUN_CHECK_CACHE (the harness's container-stable
+# cache dir — set by `fun` so agent runs with a throwaway $HOME still reuse
+# it; falls back to ~/.cache), keyed by the requirements hash — built once per
+# requirements.txt change, reused by every later run (worktrees share the
+# cache; the container's pip egress is allowlisted: pypi.org +
+# files.pythonhosted.org). Only if that build fails does layer 2 skip,
+# honestly, with the reason. The smoke itself stays no-network — the startup
+# RSS refresh is patched out.
 set -e
 cd "$(dirname "$0")/.."
 
@@ -20,7 +22,7 @@ git ls-files '*.py' | xargs -r python3 -m py_compile
 PY=python3
 if ! python3 -c 'import fastapi, uvicorn, jinja2, feedparser, anthropic, dotenv, httpx' 2>/dev/null; then
   req_hash="$(sha256sum requirements.txt | cut -c1-16)"
-  venv="${XDG_CACHE_HOME:-$HOME/.cache}/fun-check/enjoythenews-$req_hash"
+  venv="${FUN_CHECK_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}}/fun-check/enjoythenews-$req_hash"
   if [ ! -x "$venv/bin/python" ]; then
     echo "check: layer 2 — building deps venv (once per requirements.txt change)…"
     # A failed/partial build is removed so the next run retries cleanly.
