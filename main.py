@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 import json
@@ -55,10 +56,33 @@ def _timeago(value: str) -> str:
 templates.env.filters["timeago"] = _timeago
 
 
+# Seconds between periodic feed refreshes. In-process (not a systemd timer) so
+# dev and prod behave identically with no server configuration; the task dies
+# with the process.
+REFRESH_INTERVAL = 60 * 60
+
+
 @app.on_event("startup")
-def startup():
+async def startup():
     db.init()
     _do_refresh()
+    # asyncio holds only a weak reference to tasks; keep one on app.state.
+    app.state.refresh_task = asyncio.create_task(_periodic_refresh())
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    app.state.refresh_task.cancel()
+
+
+async def _periodic_refresh():
+    while True:
+        await asyncio.sleep(REFRESH_INTERVAL)
+        try:
+            new_count = await asyncio.to_thread(_do_refresh)
+            print(f"refresh: periodic fetch: {new_count} new articles")
+        except Exception as exc:
+            print(f"refresh: periodic fetch failed: {exc}")
 
 
 @app.get("/", response_class=HTMLResponse)

@@ -6,10 +6,10 @@
 - [ ] Confirm whether the hardcoded Norwegian demo content in `src/index.html`'s extra tab sections (~lines 460-465, alongside the Jinja2 loop) is intentional. If not, replace with real template data or remove the sections. (Human decision on intent; implementation can follow in a run.)
 
 ## Docs
-- [ ] Reword the "Backend serves JSON endpoints" bullet in CLAUDE.md's Frontend pattern section: it reads as a description but the index is server-rendered and `/refresh` returns HTML. Restate it as a guideline for new endpoints (propose the wording, per CLAUDE.md's update rule).
+- [x] Reword the "Backend serves JSON endpoints" bullet in CLAUDE.md's Frontend pattern section — done 2026-08-05: wording proposed in MEMORY-PROPOSALS.md (runs must not edit CLAUDE.md); apply via `fun memory rules` or by hand after review.
 
 ## Harness
 - [x] Make `./.fun/check` layer 2 (no-network GET / smoke) pass in the container — done 2026-08-04: when the deps aren't importable, the check now provisions them itself into a venv cached under `~/.cache/fun-check/enjoythenews-<requirements-hash>` (built once per `requirements.txt` change; the container firewall already allowlists pypi.org + files.pythonhosted.org). Reused across runs and worktrees; a failed build removes the partial venv and degrades to the old honest skip (exit 0). Verified: host direct, container first build, container cache hit (~1s), and the skip path.
 
 ## Later / operational
-- [ ] Background scheduler for feed refresh: articles are currently fetched only at startup and on manual `/refresh`. Design the simplest periodic refresh (e.g. systemd timer hitting `/refresh`, or an in-process asyncio task) consistent with the no-frameworks philosophy; update the Known constraints section when done.
+- [x] Background scheduler for feed refresh — done 2026-08-05: in-process asyncio task in `main.py` (`_periodic_refresh`, hourly via `REFRESH_INTERVAL`, `asyncio.to_thread` so the sync fetch never blocks the loop; cancelled on shutdown). Chosen over a systemd timer so dev and prod behave identically with zero server config. The matching Known-constraints update is proposed in MEMORY-PROPOSALS.md (runs must not edit CLAUDE.md).
