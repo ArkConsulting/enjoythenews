@@ -143,7 +143,7 @@ Flat modules at the repo root (`main.py`, `feeds.py`, `db.py`, `models.py`, `ai.
 **Frontend pattern:**
 - `src/index.html` (the app) and `src/edit.html` (the edit environment) — each a single self-contained file. Jinja2 renders full HTML server-side; vanilla JS handles interactivity (clicks, fetches, DOM updates).
 - No HTMX, no base template, no partials. One file = full context for the LLM.
-- Backend serves JSON endpoints. Frontend fetches and renders. No HTML partials over the wire.
+- Full pages are server-rendered Jinja2; new dynamic endpoints return JSON for the page's JS to fetch and render. Never HTML partials/fragments over the wire. (rule added 2026-08-05)
 - Hand-written CSS in each file's `<style>` block (plus Google Fonts) — no CSS framework in `src/`.
 
 This is a deliberate decision: vanilla JS has far better LLM training data coverage than HTMX, and self-contained files let the LLM reason about the full template without needing server endpoint context. Matches the `designs/` philosophy.
@@ -154,4 +154,4 @@ Edit `SOURCES` in `feeds.py`. Each source needs `name` and `url` (RSS). The sour
 
 ## Known constraints
 
-- No background scheduler — articles are only fetched at startup and on manual refresh.
+- Feed refresh is periodic in-process: an asyncio task in `main.py` runs every hour (`REFRESH_INTERVAL`), in addition to startup and manual `/refresh`. No external scheduler; the task dies with the process. (rule added 2026-08-05)
